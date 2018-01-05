@@ -7,19 +7,26 @@
     <link rel="StyleSheet" type="text/css" href="puzzle.css">
 
     <script 
-        src="https://code.jquery.com/jquery-latest.js"></script>
+        src="https://code.jquery.com/jquery-latest.js"
+        crossorigin="anonymous"></script>
 
 </head>
 
-<p id="pOne">
+<p id="p">
     Drag and drop picture for puzzle
 </p>
 
 <body>
+
     <script src="puzzle.js">
         "use strict";
     </script>
 
-    <canvas id="puzzleImage"></canvas>
+     <canvas id="puzzleImage"></canvas>
+     <div>
+            <button type="button" onclick="splitImage()">Start game</button>
+     </div>
+   
 </body>
+
 </html>

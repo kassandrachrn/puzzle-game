@@ -3,6 +3,17 @@
 
 var imageToCut = new Image();
 var canvas;
+var pieces = [];
+var BB;
+var offsetX;
+var offsetY;
+var WIDTH;
+var HEIGHT;
+
+// drag related variables
+var dragok = false;
+var startX;
+var startY;
 
 $(function () {
      $(document)
@@ -39,6 +50,7 @@ function drawFullImage(image) {
     context.drawImage(image,0,0);
 
     canvas = document.getElementById("puzzleImage");
+
     document.getElementById("p").innerHTML = "Click button to begin";
 
     imageToCut.src = canvas.toDataURL();
@@ -71,7 +83,18 @@ function splitImage(){
 			for(var j=0;j<lines;j++){
                     context.drawImage(imageToCut, j*stepH, i*stepV, stepH, stepV,
                         j*(stepH+space), i*(stepV+space), stepH, stepV);
+                          pieces.push(context.getImageData(j*(stepH+space),i*(stepV+space),stepH,stepV));
 		                    }
     }
     document.getElementById("p").innerHTML = "Move and connect the pieces by clicking them";
+
+    BB = canvas.getBoundingClientRect();
+    offsetY = BB.top;
+    offsetX = BB.left;
+    WIDTH = canvas.width;
+    HEIGHT = canvas.height;
+
+
 }
+
+// 3. selecting objects

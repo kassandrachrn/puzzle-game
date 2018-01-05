@@ -1,0 +1,14 @@
+p{
+    text-align: left;
+    font-style: initial;
+    font-size: medium;
+    color: whitesmoke;
+    font-weight: bold;
+    text-indent: 8cm;
+}
+
+body{
+    padding: 0;
+    text-align: center;
+    background-color: black; 
+}

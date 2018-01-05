@@ -38,11 +38,36 @@ function drawFullImage(image) {
     document.getElementById("p").innerHTML = "Click button to begin";
 }
 
-// 2. splitting the image in the desired number of pieces
+// 2. splitting the image in puzzle pieces
 
 function splitImage(){
-    console.log("entered function");
 
+    var image = new Image();
+	var canvas = document.getElementById("puzzleImage");
+	image.src = canvas.toDataURL();
+	
+	var imageHeight = canvas.height;
+	var imageWidth = canvas.width;
+	
+	canvas.height += 20;
+	canvas.width +=20;
+	
+    var context = canvas.getContext('2d');
+	context.fillStyle = "white";
+	context.fillRect(0, 0, canvas.width, canvas.height);
+	
+	var space = 5;
+	let lines = 5;
+	
+	let stepV =  imageHeight / lines;
+	let stepH =  imageWidth / lines;
+	
+	for(var i=0;i<lines;i++){
+			for(var j=0;j<lines;j++){			
+                    context.drawImage(image, j*stepH, i*stepV, stepH, stepV,
+                        j*(stepH+space), i*(stepV+space), stepH, stepV);
+		}
+    }
 
     document.getElementById("p").innerHTML = "Move and connect the pieces by clicking them";
 }
@@ -62,7 +87,7 @@ function shuffleArray(array){
 }
 
 var canvas = document.getElementById("puzzleImage");
-var context = document.getContext('2d');
+var context = canvas.getContext('2d');
 
 function shufflePieces(){
 

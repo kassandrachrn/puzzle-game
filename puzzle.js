@@ -7,6 +7,8 @@ var pieces = [];
 var pieceOne;
 var pieceTwo;
 var clickIsPressed = false;
+var imageOriginal; // to compare image before randomize and after in order to see if the puzzle is completed
+var imageAfterUserModifies;
 
 
 $(function () {
@@ -89,6 +91,9 @@ function splitImage(){
 
     document.getElementById("p").innerHTML = "Move and connect the pieces by clicking them";
 
+    imageOriginal = context.getImageData(0,0,canvas.width,canvas.height);
+
+    randomize(context);
 
     canvas.addEventListener('click', function(event) {
 
@@ -112,6 +117,14 @@ function splitImage(){
               pieceTwo = element;
               clickIsPressed = false;
               swappingPieces(context,pieceOne,pieceTwo);
+
+              let equalImages = false;
+
+              imageAfterUserModifies = context.getImageData(0,0,canvas.width,canvas.height);
+
+              if(compareImages(imageAfterUserModifies,imageOriginal)){
+                alert("YOUUU WONNN!!!!");
+              };
             }
       }
     });
@@ -150,3 +163,22 @@ function swappingPieces(context,pieceOne,pieceTwo){
 }
 
 // 4. Randomize puzzle
+
+function randomize(context){
+
+ for (let i=0;i<10;i++){
+   var pieceOne = pieces[Math.floor(Math.random() * pieces.length)];
+   var pieceTwo = pieces[Math.floor(Math.random() * pieces.length)];
+   swappingPieces(context,pieceOne,pieceTwo);
+ }
+}
+
+function compareImages(img1,img2){
+  if(img1.data.length != img2.data.length)
+      return false;
+  for(var i = 0; i < img1.data.length; ++i){
+      if(img1.data[i] != img2.data[i])
+          return false;
+  }
+  return true;
+}

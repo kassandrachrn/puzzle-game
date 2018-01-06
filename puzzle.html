@@ -16,6 +16,8 @@
     Drag and drop picture for puzzle
 </p>
 
+<div id="anim"></div>
+
 <body>
 
     <script src="puzzle.js">
@@ -24,7 +26,10 @@
 
      <canvas id="puzzleImage"></canvas>
      <div>
-            <button type="button" onclick="splitImage()">Start game</button>
+            <button onclick="splitImage()">Start game</button>
+            <button id="btnQuick" onclick="autoSolve()">Quick Result</button>
+
+            
      </div>
 
 </body>

@@ -1,13 +1,17 @@
 
-// 1.drag and drop functionality
+// 1.drag and drop image to begin puzzle
 
+//declaring the necessary variables
 var imageToCut = new Image();
 var canvas;
+var context;
 var pieces = [];
+var piecesAnim = [];
 var pieceOne;
-var pieceTwo;
+var pieceTwo; 
+var moving = false;
 var clickIsPressed = false;
-var imageOriginal; // to compare image before randomize and after in order to see if the puzzle is completed
+var imageOriginal; // to compare image before and after shuffle in order to see if the puzzle is completed
 var imageAfterUserModifies;
 
 
@@ -29,7 +33,6 @@ $(function () {
                             .load(function(){drawFullImage(this);})
                             .attr("src", e.target.result);
                 };
-
                 reader.readAsDataURL(files[0]);
             }
         });
@@ -42,7 +45,7 @@ function drawFullImage(image) {
     $("#puzzleImage")
         .attr({ width: canvW, height: canvH });
 
-    var context = $("#puzzleImage")[0].getContext("2d");
+    context = $("#puzzleImage")[0].getContext("2d");
     context.drawImage(image,0,0);
 
     canvas = document.getElementById("puzzleImage");
@@ -50,14 +53,11 @@ function drawFullImage(image) {
     document.getElementById("p").innerHTML = "Click button to begin";
 
     imageToCut.src = canvas.toDataURL();
-
-
 }
 
-// 2. splitting the image in puzzle pieces
+// 2. splitting the image in puzzle pieces and shuffling
 
 function splitImage(){
-
 
 	var imageHeight = canvas.height;
 	var imageWidth = canvas.width;
@@ -65,77 +65,134 @@ function splitImage(){
 	canvas.height +=20;
 	canvas.width +=20;
 
-  var context = canvas.getContext('2d');
+  context = canvas.getContext('2d');
 	context.fillStyle = "white";
 	context.fillRect(0, 0, canvas.width, canvas.height);
 
-	var space = 5;
-	let lines = 5;
+  var space = 5;
+  let lines = columns= 5;
 
-	let stepV =  imageHeight / lines;
-	let stepH =  imageWidth / lines;
+	let pieceH =  imageHeight / lines;
+  let pieceW =  imageWidth / lines;
+  var counter = 0;
 
 	for(var i=0;i<lines;i++){
-			for(var j=0;j<lines;j++){
-                    context.drawImage(imageToCut, j*stepH, i*stepV, stepH, stepV,
-                        j*(stepH+space), i*(stepV+space), stepH, stepV);
-                          pieces.push({
-                            left:j*(stepH+space),
-                            top:i*(stepV+space),
-                            width:stepH,
-                            height:stepV,
-                            imageData: context.getImageData(j*(stepH+space),i*(stepV+space),stepH,stepV)
-                          });
-		                    }
-    }
+			for(var j=0;j<columns;j++){
+        //take piece by piece each part from the entire image so that we obtain 25 puzzle pieces
+        //have a space between the pieces to notice the splitting
 
-    document.getElementById("p").innerHTML = "Move and connect the pieces by clicking them";
+          context.drawImage(imageToCut, j*pieceW, i*pieceH, pieceW, pieceH,
+              j*(pieceW+space), i*(pieceH+space), pieceW, pieceH);
 
-    imageOriginal = context.getImageData(0,0,canvas.width,canvas.height);
+        //put all the pieces in an array with their coordinates and their pixels
+          pieces.push({
+              left:j*(pieceW+space),
+              top:i*(pieceH+space),
 
-    randomize(context);
+              width:pieceW,
+              height:pieceH,
+              id: counter++,
 
-    canvas.addEventListener('click', function(event) {
+              imageData: context.getImageData(j*(pieceW+space),i*(pieceH+space),pieceW,pieceH)
+          });
+		  }
+  }
 
-    var rect = canvas.getBoundingClientRect();
+  document.getElementById("p").innerHTML = "Click on two pieces to interchange them";
 
-    var scaleX = canvas.width / rect.width;   // relationship bitmap vs. element for X
-    var scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for
+  imageOriginal = context.getImageData(0,0,canvas.width,canvas.height);
 
-    var x = (event.clientX - rect.left) * scaleX;
-    var y = (event.clientY - rect.top) * scaleY;
-
-    // Collision detection between clicked offset and element.
-    pieces.forEach(function(element) {
-      if (y > element.top && y < element.top + element.height && x > element.left && x < element.left + element.width) {
-
-            if(clickIsPressed==false){
-              pieceOne=element;
-              clickIsPressed = true;
-            }else{
-              console.log("clicked 2");
-              pieceTwo = element;
-              clickIsPressed = false;
-              swappingPieces(context,pieceOne,pieceTwo);
-
-              let equalImages = false;
-
-              imageAfterUserModifies = context.getImageData(0,0,canvas.width,canvas.height);
-
-              if(compareImages(imageAfterUserModifies,imageOriginal)){
-                alert("YOUUU WONNN!!!!");
-              };
-            }
-      }
-    });
-
-  }, false);
-
-    console.log(pieces);
+  shufflePieces(context);
+  pieceSelection();
 }
 
-// 3. selecting objects
+var moving = false;
 
+// 3. selecting the pieces by clicking them
+
+function pieceSelection(){
+
+  context = canvas.getContext("2d");
+  canvas.addEventListener('click', function(event) {
+
+    playSound("\media\\click2.mp3");
+
+    //scaling the canvas relative to the viewport
+    var rect = canvas.getBoundingClientRect();
+
+    var scaleX = canvas.width / rect.width;   
+    var scaleY = canvas.height / rect.height;  
+    
+    //getting the real cursor coordinates
+    var x = (event.clientX - rect.left) * scaleX;
+    var y = (event.clientY - rect.top) * scaleY; 
+
+    // collision detection between clicked offset and element
+    pieces.forEach(function(element) {
+      if (y > element.top && y < element.top + element.height &&
+          x > element.left && x < element.left + element.width) {
+
+        //checking if two pieces were clicked so that swapping can take place
+        if(clickIsPressed==false){
+          pieceOne=element;
+          // context.clearRect(pieceOne.x,pieceOne.y,pieceOne.width,pieceOne.height);
+          // context.save();
+          // context.drawImage(imageAfterUserModifies,pieceOne.x,pieceOne.y,pieceOne.width,
+          //   pieceOne.height, x-(pieceOne.width/2), y-(pieceOne.height/2),pieceOne.width,pieceOne.height);
+          // context.restore();
+          clickIsPressed = true;
+
+          // document.onmousemove = updatePuzzle;
+          // document.onmouseup = pieceDropped;
+
+        }else{
+          pieceTwo = element;
+          clickIsPressed = false;
+          swappingPieces(context,pieceOne,pieceTwo);
+
+          imageAfterUserModifies = context.getImageData(0,0,canvas.width,canvas.height);
+
+          //winning event
+          if(compareImages(imageAfterUserModifies,imageOriginal)){
+            document.getElementById("p").innerHTML = "YOUUU WOOON!!!!";
+            playSound("\media\\tadaa.mp3");
+
+            context = canvas.getContext('2d');
+            context.clearRect(0,0,canvas.width, canvas.height);
+            context.fillStyle = "black";
+	          context.fillRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(imageToCut,0,0);
+
+          };
+        }
+      }
+    });
+  }, false);
+}
+
+function updatePuzzle(element){
+  if (y > element.top && y < element.top + element.height &&
+      x > element.left && x < element.left + element.width) {
+
+
+      }
+
+}
+
+
+// 4. shuffle pieces
+
+function shufflePieces(context){
+
+ for (let i=0;i<30;i++){
+   var pieceOne = pieces[Math.floor(Math.random() * pieces.length)];
+   var pieceTwo = pieces[Math.floor(Math.random() * pieces.length)];
+   swappingPieces(context,pieceOne,pieceTwo);
+ }
+
+}
+
+// swapping pieces function
 function swappingPieces(context,pieceOne,pieceTwo){
 
   let tempLeftOne = pieceOne.left;
@@ -153,32 +210,73 @@ function swappingPieces(context,pieceOne,pieceTwo){
   pieceTwo.left = tempLeftOne;
   pieceTwo.top = tempTopOne;
 
-  // Swapp positions in array;
+  // swap positions in array;
   let tempPieceOne = pieceOne;
   let tempPieceTwo = pieceTwo;
 
   pieces[pieces.indexOf(pieceOne)] = tempPieceTwo;
   pieces[pieces.indexOf(pieceTwo)] = tempPieceOne;
-
 }
 
-// 4. Randomize puzzle
-
-function randomize(context){
-
- for (let i=0;i<10;i++){
-   var pieceOne = pieces[Math.floor(Math.random() * pieces.length)];
-   var pieceTwo = pieces[Math.floor(Math.random() * pieces.length)];
-   swappingPieces(context,pieceOne,pieceTwo);
- }
-}
-
+// 5. verifying if the puzzle is completed
 function compareImages(img1,img2){
+
   if(img1.data.length != img2.data.length)
       return false;
+
+  //comparing elements by their containing pixels
   for(var i = 0; i < img1.data.length; ++i){
       if(img1.data[i] != img2.data[i])
           return false;
   }
   return true;
+}
+
+// 6. playing sound when clicking a piece or winning game
+
+function playSound(path){
+  var audio = document.createElement('audio');
+  audio.setAttribute('src', path);
+  audio.play();
+}
+
+var moving = false;
+
+var animation = document.getElementById("anim");
+animation.addEventListener("mousedown", initialClick, false);
+
+
+function move(e){
+
+  var newX = e.clientX - 10;
+  var newY = e.clientY - 10;
+  
+  image.style.left = newX + "px";
+  image.style.top = newY + "px";  
+}
+  
+function initialClick(e) {
+  
+  if(moving){
+    document.removeEventListener("mousemove", move);
+    moving = !moving;
+    return;
+  }
+    
+  moving = !moving;
+  image = this;
+  
+  document.addEventListener("mousemove", move, false);
+}
+
+
+//7. animation for complete image
+
+function autoSolve(){
+
+  context = canvas.getContext('2d');
+  
+
+  
+
 }

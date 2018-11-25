@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Puzzle Game</title>
 
-    <link rel="StyleSheet" type="text/css" href="puzzle.css">
+    <link rel="StyleSheet" type="text/css" href="3_1077_CHIRAN_ELENA_KASSANDRA.css">
 
     <script
         src="https://code.jquery.com/jquery-latest.js"
@@ -16,20 +16,16 @@
     Drag and drop picture for puzzle
 </p>
 
-<div id="anim"></div>
-
 <body>
 
-    <script src="puzzle.js">
+    <script src="3_1077_CHIRAN_ELENA_KASSANDRA.js">
         "use strict";
     </script>
 
      <canvas id="puzzleImage"></canvas>
      <div>
-            <button onclick="splitImage()">Start game</button>
-            <button id="btnQuick" onclick="autoSolve()">Quick Result</button>
-
-            
+            <button id="startBtn" onclick="splitImage()">Start game</button>
+            <button id="btnQuick" onclick="animateSolution()">Quick Result</button>
      </div>
 
 </body>
